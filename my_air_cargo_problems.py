@@ -21,6 +21,7 @@ class AirCargoProblem(Problem):
         :param planes: list of str
             planes in the problem
         :param airports: list of str
+
             airports in the problem
         :param initial: FluentState object
             positive and negative literal fluents (as expr) describing initial state
@@ -306,7 +307,7 @@ def air_cargo_p3() -> AirCargoProblem:
 
     cargos = ['C1', 'C2', 'C3', 'C4']
     planes = ['P1', 'P2']
-    airports = ['JFK', 'SFO', 'ATL', 'ORD'] #Check what ORD is for
+    airports = ['JFK', 'SFO', 'ATL', 'ORD'] 
     pos = [expr('At(C1, SFO)'),
            expr('At(C2, JFK)'),
            expr('At(C3, ATL)'),
@@ -344,7 +345,7 @@ def air_cargo_p3() -> AirCargoProblem:
 
 
     init = FluentState(pos, neg)
-    goal = [expr('At(C1, JFK)'), #goals consistent? or can they be changed?
+    goal = [expr('At(C1, JFK)'), 
            expr('At(C2, SFO)'),
            expr('At(C3, JFK)'),
            expr('At(C4, SFO)'),
