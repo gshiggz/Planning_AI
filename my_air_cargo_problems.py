@@ -302,7 +302,7 @@ def air_cargo_p2() -> AirCargoProblem:
            
 
 def air_cargo_p3() -> AirCargoProblem:
-    # TODO implement Problem 3 definition
+    #TODO implement Problem 3 definition
     #pass
 
     cargos = ['C1', 'C2', 'C3', 'C4']
