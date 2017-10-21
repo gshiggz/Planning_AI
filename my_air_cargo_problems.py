@@ -69,7 +69,7 @@ class AirCargoProblem(Problem):
                                        expr("At({}, {})".format(p, a))]
                         precond_neg = []
                         effect_add = [expr("In({}, {})".format(c, p))]
-                        effect_rem = [expr("In({}, {})".format(c, a))]
+                        effect_rem = [expr("At({}, {})".format(c, a))]
                         load = Action(expr("Load({}, {}, {})".format(c, p, a)),
                                       [precond_pos, precond_neg],
                                       [effect_add, effect_rem])
@@ -86,11 +86,11 @@ class AirCargoProblem(Problem):
             for c in self.cargos:
                 for p in self.planes:
                     for a in self.airports:
-                        precond_pos = [expr("At({}, {})".format(c, a)),
+                        precond_pos = [expr("In({}, {})".format(c, p)),
                                        expr("At({}, {})".format(p, a))]
                         precond_neg = []
-                        effect_add = [expr("At({}, {})".format(c, p))]
-                        effect_rem = [expr("At({}, {})".format(c, a))]
+                        effect_add = [expr("At({}, {})".format(c, a))]
+                        effect_rem = [expr("In({}, {})".format(c, p))]
                         unload = Action(expr("Unload({}, {}, {})".format(c, p, a)),
                                         [precond_pos, precond_neg],
                                         [effect_add, effect_rem])
@@ -132,23 +132,16 @@ class AirCargoProblem(Problem):
         possible_actions = []
         kb = PropKB()
         kb.tell(decode_state(state, self.state_map).pos_sentence())
-
         for action in self.actions_list:
-            req_met = True
-
+            is_possible = True
+            for clause in action.precond_pos:
+                if clause not in kb.clauses:
+                    is_possible = False
             for clause in action.precond_neg:
                 if clause in kb.clauses:
-                    req_met = False
-                    break
-
-            for clause in action.precond_pos:
-                if clause in kb.clauses:
-                    req_met = False
-                    break
-
-            if req_met:
+                    is_possible = False
+            if is_possible:
                 possible_actions.append(action)
-                
         return possible_actions
 
     def result(self, state: str, action: Action):
@@ -162,27 +155,23 @@ class AirCargoProblem(Problem):
         """
         # TODO implement
         new_state = FluentState([], [])
-        current_state = decode_state(state, self.state_map)
+        old_state = decode_state(state, self.state_map)
 
-        current_neg = current_state.neg
-        current_pos = current_state.pos
+        for fluent in old_state.pos:
+            if fluent not in action.effect_rem:
+                new_state.pos.append(fluent)
+        for fluent in action.effect_add:
+            if fluent not in new_state.pos:
+                new_state.pos.append(fluent)
+        for fluent in old_state.neg:
+            if fluent not in action.effect_add:
+                new_state.neg.append(fluent)
+        for fluent in action.effect_rem:
+            if fluent not in new_state.neg:
+                new_state.neg.append(fluent)
 
-        for effect in action.effect_add:
-            current_pos.append(effect)
-
-            if effect in current_neg:
-                current_neg.remove(effect)
-
-        for effect in action.effect_rem:
-            current_neg.append(effect)
-
-            if effect in current_pos:
-                current_pos.remove(effect)
-
-        new_state = FluentState(current_pos, current_neg)
-        
-        
         return encode_state(new_state, self.state_map)
+
 
     def goal_test(self, state: str) -> bool:
         """ Test the state to see if goal is reached
